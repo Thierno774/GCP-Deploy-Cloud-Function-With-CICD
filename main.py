@@ -1,8 +1,7 @@
 import logging
-import os
 import functions_framework
 from flask import jsonify, make_response, request
-from utils.order_utils import validate_payload, enrich_payload, simulate_db_save
+from utils.order_utils import validate_payload, simulate_db_save
 
 # ——— Logger setup ———
 logger = logging.getLogger('order_service')
@@ -18,7 +17,7 @@ if not logger.handlers:
 @functions_framework.http
 def order_event(request):
     """
-    HTTP Cloud Run Function to handle 'order.created' events.
+    HTTP Cloud Function to handle 'order.created' events.
     Expects a rich JSON payload (see utils/order_utils.validate_payload).
     """
 
@@ -39,28 +38,23 @@ def order_event(request):
         logger.error("Validation failed: %s", e)
         return make_response(jsonify({"error": str(e)}), 400)
 
-    # 2) Enrich
-    enriched = enrich_payload(data)
-
-    # 3) “Save” (fake)
+    # 2) “Save” (fake)
     try:
-        if not simulate_db_save(enriched):
+        if not simulate_db_save(data):
             raise RuntimeError("DB save returned False")
     except Exception:
         logger.exception("Error saving to DB")
         return make_response(jsonify({"error": "Internal error"}), 500)
 
-    # 4) Build response
+    # 3) Build response
     resp = {
         "status":           "processed",
-        "order_id":         enriched["order_id"],
-        "processing_id":    enriched["processing_id"],
-        "processed_at":     enriched["processed_at"],
-        "items_count":      len(enriched["items"]),
-        "total_amount":     enriched["total_amount"],
-        "payment_method":   enriched["payment_method"],
-        "shipping_address": enriched["shipping_address"],
+        "order_id":         data["order_id"],
+        "items_count":      len(data["items"]),
+        "total_amount":     data["total_amount"],
+        "payment_method":   data["payment_method"],
+        "shipping_address": data["shipping_address"],
         "message":          "Order received and stored."
     }
-    logger.info("Order %s processed successfully", enriched["order_id"])
+    logger.info("Order %s processed successfully", data["order_id"])
     return make_response(jsonify(resp), 200)
