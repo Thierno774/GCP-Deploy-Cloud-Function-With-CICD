@@ -68,7 +68,7 @@ def validate_payload(data: Dict[str, Any]) -> None:
 
     logger.info("Payload validated for order %s", data["order_id"])
 
-
+# Function permettant de generer des metadata 
 def enrich_payload(data: Dict[str, Any]) -> Dict[str, Any]:
     """
     Add processing metadata
