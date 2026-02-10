@@ -68,26 +68,28 @@ def validate_payload(data: Dict[str, Any]) -> None:
 
     logger.info("Payload validated for order %s", data["order_id"])
 
-# Function permettant de generer des metadata 
-def enrich_payload(data: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Add processing metadata
-    """
+
+import logging
+import uuid
+from datetime import datetime
+
+logger = logging.getLogger("order_utils")
+
+def validate_payload(data):
+    # validation...
+    return True
+
+def enrich_payload(data):
+    """Ajoute processing_id et processed_at"""
     data["processing_id"] = uuid.uuid4().hex
     data["processed_at"] = datetime.utcnow().isoformat() + "Z"
-
-    logger.info(
-        "Payload enriched: order_id=%s processing_id=%s",
-        data["order_id"],
-        data["processing_id"],
-    )
-
     return data
 
-
-def simulate_db_save(data: Dict[str, Any]) -> bool:
-    """
-    Simulate saving the order to a database
-    """
-    logger.info("Simulating DB save for order %s", data["order_id"])
+def simulate_db_save(data):
+    """Simule l’enregistrement"""
+    logger.info("Simulating DB save for order %s", data.get("order_id"))
     return True
+
+
+
+
